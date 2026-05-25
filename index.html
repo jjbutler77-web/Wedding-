@@ -32,31 +32,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', async function() {
-  const loading = document.getElementById('__bundler_loading');
-  function setStatus(msg) { if (loading) loading.textContent = msg; }
-
-  window.addEventListener('error', function(e) {
-    var p = document.body || document.documentElement;
-    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
-    d.id = '__bundler_err';
-    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
-    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
-      '[bundle] ' + (e.message || e.type) +
-      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
-  }, true);
-
-  // --- GLOBAL CLICK INTERCEPTOR (THE FIX) ---
+  // 1. GLOBAL CLICK INTERCEPTOR (The Fix)
   window.addEventListener('click', function(e) {
     var link = e.target.closest ? e.target.closest('a') : null;
-    // Check if the link contains your form ID
     if (link && link.href && link.href.includes('1FAIpQLSfpCSiw5whnomgoG5gTtUlNQ9Qrh-3T1wF_gu0kyoSq_L5TLw')) {
-      e.stopPropagation(); // Stops your router from interfering
-      e.preventDefault();  // Stops the link from "loading" internally
-      window.open(link.href, '_blank', 'noopener,noreferrer'); // Forces new tab
+      e.preventDefault();
+      e.stopPropagation();
+      window.open(link.href, '_blank', 'noopener,noreferrer');
     }
-  }, true); 
-  // ------------------------------------------
+  }, true);
 
+  // 2. BUNDLER LOGIC
   try {
     const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
     const templateEl = document.querySelector('script[type="__bundler/template"]');
@@ -67,13 +53,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     const uuids = Object.keys(manifest);
     
     const blobUrls = {};
-    await Promise.all(uuids.map(async (uuid) => {
+    for (const uuid of uuids) {
       const entry = manifest[uuid];
       const binaryStr = atob(entry.data);
       const bytes = new Uint8Array(binaryStr.length);
       for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
       blobUrls[uuid] = URL.createObjectURL(new Blob([bytes], { type: entry.mime }));
-    }));
+    }
 
     for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
     
