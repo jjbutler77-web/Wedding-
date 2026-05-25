@@ -159,17 +159,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
       window.Babel.transformScriptTags();
     }
-// --- RSVP LINK PATCH START ---
-    setTimeout(function() {
-      const allLinks = document.querySelectorAll('a');
-      allLinks.forEach(function(link) {
-        if (link.href && link.href.includes('forms.gle') || link.href.includes('docs.google.com/forms')) {
-          link.setAttribute('target', '_blank');
-          link.setAttribute('rel', 'noopener noreferrer');
-        }
-      });
-    }, 500);
-    // --- RSVP LINK PATCH END ---
+// --- RSVP LINK PATCH FINAL START ---
+    window.addEventListener('click', function(e) {
+      var link = e.target.closest ? e.target.closest('a') : null;
+      // Target the exact form ID
+      if (link && link.href && link.href.includes('1FAIpQLSfpCSiw5whnomgoG5gTtUlNQ9Qrh-3T1wF_gu0kyoSq_L5TLw')) {
+        e.stopPropagation(); // 1. Block the site's internal router
+        e.preventDefault();  // 2. Stop the default click action
+        window.open(link.href, '_blank', 'noopener,noreferrer'); // 3. Force the new tab securely
+      }
+    }, true); 
+    // --- RSVP LINK PATCH FINAL END ---
   } catch (err) {
     setStatus('Error unpacking: ' + err.message);
     console.error('Bundle unpack error:', err);
